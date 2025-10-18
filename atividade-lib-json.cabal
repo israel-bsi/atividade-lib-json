@@ -64,4 +64,5 @@ test-suite atividade-lib-json-test
   build-depends:
       atividade-lib-json
     , base >=4.7 && <5
+    , hspec
   default-language: Haskell2010
