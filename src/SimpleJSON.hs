@@ -1,6 +1,18 @@
 module SimpleJSON
-    ( JValue(..)    
+    ( JValue(..),
+        getString,
+        getNumber,
+        getBool,
+        getObject,
+        getArray,
+        isNull,
+        renderJValue,
+        putJValue    
     ) where
+
+import Data.List (intercalate)
+import Data.Char (ord)
+import Numeric (showHex)
 
 data JValue = JString String
             | JNumber Double
@@ -33,3 +45,44 @@ getArray _         = Nothing
 isNull :: JValue -> Bool
 isNull JNull = True
 isNull _     = False
+
+renderJValue :: JValue -> String
+renderJValue (JString s)   = renderString s
+renderJValue (JNumber n)   = show n
+renderJValue (JBool True)  = "true"
+renderJValue (JBool False) = "false"
+renderJValue JNull         = "null"
+renderJValue (JObject o)   = "{" ++ renderPairs o ++ "}"
+renderJValue (JArray a)    = "[" ++ renderValues a ++ "]"
+
+renderString :: String -> String
+renderString s = "\"" ++ concatMap escapeChar s ++ "\""
+
+escapeChar :: Char -> String
+escapeChar '\b' = "\\b"
+escapeChar '\n' = "\\n"
+escapeChar '\f' = "\\f"
+escapeChar '\r' = "\\r"
+escapeChar '\t' = "\\t"
+escapeChar '\\' = "\\\\"
+escapeChar '\"' = "\\\""
+escapeChar '/'  = "\\/"
+escapeChar c
+    | mustEscape c = "\\u" ++ replicate (4 - length hex) '0' ++ hex
+    | otherwise    = [c]
+    where
+        mustEscape ch = ch < ' ' || ch == '\x7f' || ch > '\xff'
+        hex = showHex (ord c) ""
+
+renderPairs :: [(String, JValue)] -> String
+renderPairs [] = ""
+renderPairs ps = intercalate ", " (map renderPair ps)
+    where
+        renderPair (key, value) = renderString key ++ ": " ++ renderJValue value
+
+renderValues :: [JValue] -> String
+renderValues [] = ""
+renderValues vs = intercalate ", " (map renderJValue vs)
+
+putJValue :: JValue -> IO ()
+putJValue v = putStrLn (renderJValue v)
