@@ -25,7 +25,7 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      SimpleJSON
   other-modules:
       Paths_atividade_lib_json
   autogen-modules:
